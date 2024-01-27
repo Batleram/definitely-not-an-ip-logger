@@ -1,0 +1,13 @@
+[package]
+name = "amogousse-backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "4"
+dotenv = "0.15.0"
+handlebars = {version = "5.1.1", features=["dir_source"]} 
+serde_json = "1.0.112"
+
