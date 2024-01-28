@@ -1,1 +1,112 @@
-<p>{{testString}}</p>
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <table class="page-bg" cellspacing="0" >
+            <tr style="height:100vh;">
+
+                <td style="width:20vw; background-color: olive;" valign="top">
+                    <h3 style="text-align: center; margin: 10px;">Here are some awesome websites</h3>
+                    <hr />
+                    <ul style="text-align: left; padding-left: 17px;" >
+                        <li><a href="https://amogousse.com">Personal news website</a></li>
+                        <li><a href="https://definitelynotaniplogger.com">Wikipedia page on recursion</a></li>
+                        <li><a href="https://maps.app.goo.gl/hKe5P43cBVjP8iE6A">Live camera feed of your house</a></li>
+                        <li><a href="https://en.wikipedia.org/wiki/Donald_Trump">Johnny Test fanfic page</a></li>
+                        <li><a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messagebox">List of dog breeds</a></li>
+                        <li><a href="https://www.twitch.tv/pinguefy">LiveLeak</a></li>
+                    </ul>
+                </td>
+
+                <td valign="top">
+                    <h1 class="page-welcome">Welcome to this page which definitely doesn't log your ip :)</h1>
+                    <table class="icon-table" cellspacing="7">
+                        <tr>
+                            <td><img src="/static/pcs.png"/></td>
+                            <td><img src="/static/computer.png"/></td>
+                            <td><img src="/static/contacts.png"/></td>
+                        </tr>
+
+                    </table>
+                    {{{data_table}}}
+                    <section style="text-align: center; margin-top: 40px;">
+                        <h3>Please visit again!!</h3>
+                        <p>And in the meantime, drive safely, have fun and take down prod</p>
+                    </section>
+                </td>
+                <td style="width:20vw;"></td>
+            </tr>
+        </table>
+    </body>
+
+    <style>
+
+        html {
+            font-size: 12px;
+        }
+
+        * {
+            margin: 0px;
+            box-sizing: border-box;
+            border: none;
+        }
+
+        hr {
+              display: block;
+              margin-top: 0.5em;
+              margin-bottom: 0.5em;
+              margin-left: auto;
+              margin-right: auto;
+              border-style: inset;
+              border-width: 1px;
+        }
+
+        td {
+              border-style: inset;
+              border-width: 1px;
+        }
+
+        .page-welcome {
+            text-align: center;
+            width: 60vw;
+            margin: auto;
+            margin-top: 30px;
+        }
+        
+        .page-bg{
+            width: 100vw;
+            height: 100vh;
+            background-color: #c4c4c4;
+            display: grid;
+        }
+
+        .counter-sheet {
+            width: 60vw;
+            height: min-content;
+            box-shadow: 3px 3px 1px black;
+            margin: auto;
+            margin-top: 30px;
+            background-color: beige;
+            border: 1px black solid;
+        }
+        
+        .icon-table {
+            margin: auto;
+            border: none;
+        }
+
+        .icon-table td{
+            border: none;
+        }
+
+        .icon-table img {
+            height: 64px;
+            width: 64px;
+            border: none;
+        }
+    </style>
+</html>

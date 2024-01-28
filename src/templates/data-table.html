@@ -1,0 +1,31 @@
+<table class="data-table" >
+    <tr>
+        <td><p>Your ip is the following: </p></td><td><b>{{ip}}</b></td>
+    </tr>
+    <tr>
+        <td><p>You are the nth distinct visitor since I last restarted this container: </p></td><td><b>{{visitor_rank}}</b></td>
+    </tr>
+    <tr>
+        <td><p>Last restart date: </p></td><td><b>{{last_start_time}}</b></td>
+    </tr>
+    <tr>
+        <td><p>Total number of visitors: </p></td><td><b>{{total_visitors}}</b></td>
+    </tr>
+
+</table>
+<style>
+        .data-table {
+            max-width: 700px;
+            margin: auto;
+            border-spacing: 0 3px;
+        }
+
+        .data-table tr td:nth-child(1) {
+            width: 70%;
+            border-right: none;
+            padding-right: 5px;
+        }
+        .data-table tr td:nth-child(2) {
+            width: 30%;
+        }
+</style>

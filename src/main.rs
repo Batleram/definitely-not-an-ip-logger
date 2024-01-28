@@ -1,12 +1,27 @@
+use actix_files as fs;
 use actix_web::{get, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
-use handlebars::{DirectorySourceOptions, Handlebars, Renderable};
+use handlebars::{DirectorySourceOptions, Handlebars};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{collections::HashSet, net::SocketAddr, sync::Mutex};
 
 struct AppState<'a> {
     bars: Mutex<Handlebars<'a>>,
     user_visits: Mutex<HashSet<u32>>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct DataTableParams {
+    ip: String,
+    visitor_rank: u32,
+    last_start_time: String,
+    total_visitors: u32,
+}
+
+#[derive(Serialize, Deserialize)]
+struct IndexParams {
+    data_table: String,
 }
 
 #[get("/ip")]
@@ -18,12 +33,31 @@ async fn ip(req: HttpRequest) -> impl Responder {
 }
 
 async fn index(state: web::Data<AppState<'_>>) -> impl Responder {
+    let bar_lock = match state.bars.lock() {
+        Ok(x) => x,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
+    let data_table_content = DataTableParams {
+        ip: "255.255.255.255".to_owned(),
+        visitor_rank: 12,
+        last_start_time: "Oct 10th 2028".to_owned(),
+        total_visitors: 6969,
+    };
+
+
+    let data_table_component = match bar_lock.render("data-table", &data_table_content ) {
+        Ok(x) => x,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
+    let index_content = IndexParams {
+        data_table: data_table_component,
+    };
+
     return HttpResponse::Ok().body(
-        state
-            .bars
-            .lock()
-            .unwrap()
-            .render("index", &json!({"testString": "asdfasdf"}))
+        bar_lock
+            .render("index", &index_content)
             .unwrap(),
     );
 }
@@ -33,7 +67,6 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
     let mut bars = Handlebars::new();
-    // bars.register_template_file("index", "src/templates/index.html").unwrap();
     bars.register_templates_directory(
         "./src/templates/",
         DirectorySourceOptions {
@@ -54,6 +87,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
+            .service(fs::Files::new("/static", "src/static/"))
             .default_service(web::route().to(index))
     })
     .bind(SocketAddr::from((
