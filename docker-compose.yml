@@ -6,6 +6,7 @@ services:
       context: .
     environment:
       - PORT=8089
+      - TZ=America/Toronto
     restart: unless-stopped
     
   amg-ws:

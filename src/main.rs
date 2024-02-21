@@ -1,14 +1,16 @@
 use actix_files as fs;
-use actix_web::{get, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
 use handlebars::{DirectorySourceOptions, Handlebars};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use std::{collections::HashSet, fmt::write, net::SocketAddr, sync::Mutex};
+use std::{collections::HashMap, net::SocketAddr, sync::Mutex};
+use time::{format_description, OffsetDateTime};
 
 struct AppState<'a> {
     bars: Mutex<Handlebars<'a>>,
-    user_visits: Mutex<HashSet<u32>>,
+    user_visits: Mutex<HashMap<u32, i32>>,
+    user_count: i32,
+    start_time: OffsetDateTime,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -24,23 +26,23 @@ struct IndexParams {
     data_table: String,
 }
 
-async fn ip(req: HttpRequest) -> HttpResponse {
-    match req.connection_info().realip_remote_addr() {
-        Some(addr) => return HttpResponse::Ok().body(addr.to_string()),
-        None => return HttpResponse::Ok().body("You sneaky bastard"),
-    }
-}
-
-async fn index(state: web::Data<AppState<'_>>) -> impl Responder {
+async fn index(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Responder {
     let bar_lock = match state.bars.lock() {
         Ok(x) => x,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 
+    let ip = match req.connection_info().realip_remote_addr() {
+        Some(addr) => addr.to_string(),
+        None => return HttpResponse::Ok().body("You sneaky bastard"),
+    };
+
+    let time_format = format_description::parse("[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second]").unwrap();
+
     let data_table_content = DataTableParams {
-        ip: "255.255.255.255".to_owned(),
+        ip,
         visitor_rank: 12,
-        last_start_time: "Oct 10th 2028".to_owned(),
+        last_start_time: state.start_time.format(&time_format).unwrap(),
         total_visitors: 6969,
     };
 
@@ -71,11 +73,13 @@ async fn main() -> std::io::Result<()> {
     )
     .unwrap();
 
-    let user_visits: HashSet<u32> = HashSet::new();
+    let user_visits: HashMap<u32, i32> = HashMap::new();
 
     let state = web::Data::new(AppState {
         bars: Mutex::new(bars),
         user_visits: Mutex::new(user_visits),
+        user_count: 0,
+        start_time: OffsetDateTime::now_local().unwrap(),
     });
 
     let port: u16 = std::env::var("PORT")
@@ -87,7 +91,6 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(state.clone())
             .service(fs::Files::new("/static", "static/"))
-            .route("/ip", web::get().to(ip))
             .default_service(web::route().to(index))
     })
     .bind(SocketAddr::from(([0, 0, 0, 0], port)))
