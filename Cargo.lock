@@ -257,7 +257,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "amogousse-backend"
+name = "amogousse-server"
 version = "0.1.0"
 dependencies = [
  "actix-files",

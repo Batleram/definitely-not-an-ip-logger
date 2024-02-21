@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  amg-srv:
+    build:
+      context: .
+    environment:
+      - PORT=8089
+    restart: unless-stopped
+    ports:
+      - 8089:8089
+
+
+networks:
+    default:
+        external: false
+        name: "amg-srv-net"
+        driver: bridge
+
+

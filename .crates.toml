@@ -1,2 +1,3 @@
 [v1]
 "amogousse-backend 0.1.0 (path+file:///home/me/Documents/coding/amogousse-backend)" = ["amogousse-backend"]
+"amogousse-server 0.1.0 (path+file:///home/me/Documents/coding/amogousse-backend)" = ["amg-srv"]

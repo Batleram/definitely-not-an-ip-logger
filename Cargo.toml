@@ -1,15 +1,16 @@
 [package]
-name = "amogousse-backend"
+name = "amogousse-server"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "amg-srv"
+path = "src/main.rs"
 
 [dependencies]
 actix-files = "0.6.5"
 actix-web = "4"
 dotenv = "0.15.0"
-handlebars = {version = "5.1.1", features=["dir_source"]} 
+handlebars = {version = "5.1.0", features=["dir_source"]} 
 serde = {version = "1.0.196", features=["derive"]}
 serde_json = "1.0.112"
-

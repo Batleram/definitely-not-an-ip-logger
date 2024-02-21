@@ -4,7 +4,7 @@ use dotenv::dotenv;
 use handlebars::{DirectorySourceOptions, Handlebars};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::{collections::HashSet, net::SocketAddr, sync::Mutex, fmt::write};
+use std::{collections::HashSet, fmt::write, net::SocketAddr, sync::Mutex};
 
 struct AppState<'a> {
     bars: Mutex<Handlebars<'a>>,
@@ -90,12 +90,11 @@ async fn main() -> std::io::Result<()> {
             .service(fs::Files::new("/static", "static/"))
             .default_service(web::route().to(index))
     })
-    .bind(SocketAddr::from(([127, 0, 0, 1], port)))
+    .bind(SocketAddr::from(([0, 0, 0, 0], port)))
     .unwrap()
     .run();
 
-    println!("Started server on port: {}",port);
+    println!("Started server on port: {}", port);
 
     return res.await;
-
 }
