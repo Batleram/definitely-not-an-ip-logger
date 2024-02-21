@@ -24,9 +24,8 @@ struct IndexParams {
     data_table: String,
 }
 
-#[get("/ip")]
-async fn ip(req: HttpRequest) -> impl Responder {
-    match req.peer_addr() {
+async fn ip(req: HttpRequest) -> HttpResponse {
+    match req.connection_info().realip_remote_addr() {
         Some(addr) => return HttpResponse::Ok().body(addr.to_string()),
         None => return HttpResponse::Ok().body("You sneaky bastard"),
     }
@@ -88,6 +87,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(state.clone())
             .service(fs::Files::new("/static", "static/"))
+            .route("/ip", web::get().to(ip))
             .default_service(web::route().to(index))
     })
     .bind(SocketAddr::from(([0, 0, 0, 0], port)))

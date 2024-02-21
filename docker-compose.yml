@@ -1,14 +1,20 @@
 version: "3.8"
 services:
   amg-srv:
+    container_name: amg-srv
     build:
       context: .
     environment:
       - PORT=8089
     restart: unless-stopped
+    
+  amg-ws:
+    image: nginx
+    container_name: amg-ws
     ports:
-      - 8089:8089
-
+      - 8089:80
+    volumes:
+      - ./00-amg-site.conf:/etc/nginx/conf.d/default.conf
 
 networks:
     default:
