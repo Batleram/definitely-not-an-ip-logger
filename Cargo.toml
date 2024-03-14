@@ -15,4 +15,4 @@ handlebars = {version = "5.1.0", features=["dir_source"]}
 serde = {version = "1.0.196", features=["derive"]}
 serde_json = "1.0.112"
 time = {version = "0.3.34", features=["local-offset", "macros"]}
-sqlx = {version = "0.7", features = [ "sqlite", "runtime-async-std"]}
+sqlx = {version = "0.7", features = [ "sqlite", "runtime-async-std", "time"]}

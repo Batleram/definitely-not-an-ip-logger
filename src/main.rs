@@ -4,6 +4,7 @@ mod template_models;
 
 use actix_files as fs;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use conversion_utils::TIME_FORMAT;
 use dotenv::dotenv;
 use handlebars::{DirectorySourceOptions, Handlebars};
 use sqlx::{Pool, Sqlite};
@@ -13,7 +14,6 @@ use time::OffsetDateTime;
 
 struct AppState<'a> {
     bars: Mutex<Handlebars<'a>>,
-    start_time: OffsetDateTime,
     db: Pool<Sqlite>,
 }
 
@@ -35,10 +35,11 @@ async fn index(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Respond
                 }
             }
         },
-        last_start_time: state
-            .start_time
-            .format(conversion_utils::TIME_FORMAT)
-            .unwrap(),
+        db_init_time: persistence::get_db_setup_time(&state.db)
+            .await
+            .unwrap_or(OffsetDateTime::UNIX_EPOCH)
+            .format(TIME_FORMAT)
+            .unwrap_or("Unable to format time".to_owned()),
         total_visitors: persistence::get_user_count(&state.db).await.unwrap_or(0),
     };
 
@@ -78,7 +79,6 @@ async fn main() -> std::io::Result<()> {
 
     let state = web::Data::new(AppState {
         bars: Mutex::new(bars),
-        start_time: OffsetDateTime::now_utc(),
         db: db_pool,
     });
 

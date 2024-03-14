@@ -9,7 +9,7 @@ pub struct IndexModel{
 pub struct DataTableModel{
     pub ip: String,
     pub visitor_rank: u32,
-    pub last_start_time: String,
+    pub db_init_time: String,
     pub total_visitors: u32,
 }
 
