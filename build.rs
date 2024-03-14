@@ -2,8 +2,9 @@ use std::{env, fs};
 use std::path;
 
 fn main() -> Result<(), std::io::Error> {
-    println!("cargo:rerun-if-changed=src/templates");
-    println!("cargo:rerun-if-changed=src/static");
+    println!("cargo:rerun-if-changed=templates");
+    println!("cargo:rerun-if-changed=static");
+    println!("cargo:rerun-if-changed=migrations");
 
     let d = get_cargo_target_dir().unwrap();
 
@@ -14,6 +15,10 @@ fn main() -> Result<(), std::io::Error> {
     }
 
     if let Err(e) = recursive_copy(bp.join("templates"), &d.join("templates")) {
+        return Err(e)
+    }
+
+    if let Err(e) = recursive_copy(bp.join("migrations"), &d.join("migrations")) {
         return Err(e)
     }
 
