@@ -1,6 +1,10 @@
 <table class="data-table" >
     <tr>
-        <td><p>Your ip is the following: </p></td><td><b>{{ip}}</b></td>
+        <td><p>Your ip is the following (hidden by default): </p></td>
+        <td>
+            <button class="show-ip-button" onclick="document.getElementById('ip-text').classList.remove('hide')">&#128269;</button>
+            <b class="hide" id="ip-text">{{ip}}</b>
+        </td>
     </tr>
     <tr>
         <td><p>You are the nth distinct visitor since I accidentally deleted the DB: </p></td><td><b>{{visitor_rank}}</b></td>
@@ -27,5 +31,18 @@
         }
         .data-table tr td:nth-child(2) {
             width: 30%;
+        }
+
+        .hide {
+            color: black;
+            background: black;
+        }
+
+        .show-ip-button {
+            margin-right: 5px;
+            background-color: inherit;
+            border: 1px solid black;
+            border-radius: 4px;
+            cursor: pointer;
         }
 </style>
