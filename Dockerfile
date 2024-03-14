@@ -1,4 +1,4 @@
-FROM rust:1.75-buster as amg-builder
+FROM rust:1.75-buster as notiplog-builder
 
 WORKDIR /srv
 
@@ -15,9 +15,9 @@ FROM debian:bookworm
 
 WORKDIR /srv
 
-COPY --from=amg-builder /srv/target/release .
+COPY --from=notiplog-builder /srv/target/release .
 
 EXPOSE $PORT
 
-CMD ["./amg-srv"]
+CMD ["./notiplog-srv"]
 

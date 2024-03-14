@@ -1,7 +1,7 @@
 version: "3.8"
 services:
-  amg-srv:
-    container_name: amg-srv
+  notiplog-srv:
+    container_name: notiplog-srv
     build:
       context: .
     environment:
@@ -9,22 +9,22 @@ services:
       - TZ=America/Toronto
     restart: unless-stopped
     volumes:
-      - amg-db:/srv/database
+      - notiplog-db:/srv/database
     
-  amg-ws:
+  notiplog-ws:
     image: nginx
-    container_name: amg-ws
+    container_name: notiplog-ws
     ports:
       - 8089:80
     volumes:
-      - ./00-amg-site.conf:/etc/nginx/conf.d/default.conf
+      - ./00-notiplog-site.conf:/etc/nginx/conf.d/default.conf
 
 networks:
     default:
         external: false
-        name: "amg-srv-net"
+        name: "notiplog-net"
         driver: bridge
 
 volumes:
-  amg-db:
+  notiplog-db:
     external: false

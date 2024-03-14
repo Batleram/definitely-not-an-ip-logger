@@ -73,7 +73,7 @@ async fn main() -> std::io::Result<()> {
     )
     .unwrap();
 
-    let db_pool = persistence::init_db_conn("database/amg_storage.sqlite3")
+    let db_pool = persistence::init_db_conn("database/notiplogger_storage.sqlite3")
         .await
         .unwrap();
 
