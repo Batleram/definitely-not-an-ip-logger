@@ -11,5 +11,7 @@ pub struct DataTableModel{
     pub visitor_rank: u32,
     pub db_init_time: String,
     pub total_visitors: u32,
+    pub total_bots: u32,
+    pub bot_validation_id: String
 }
 

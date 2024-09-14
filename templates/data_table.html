@@ -2,7 +2,7 @@
     <tr>
         <td><p>Your ip is the following (hidden by default): </p></td>
         <td>
-            <button class="show-ip-button" onclick="document.getElementById('ip-text').classList.remove('hide')">&#128269;</button>
+            <button class="show-info-button" onclick="document.getElementById('ip-text').classList.remove('hide')">&#128269;</button>
             <b class="hide" id="ip-text">{{ip}}</b>
         </td>
     </tr>
@@ -14,6 +14,16 @@
     </tr>
     <tr>
         <td><p>Total number of visitors: </p></td><td><b>{{total_visitors}}</b></td>
+    </tr>
+    <tr>
+        <td><p>Number of detected bots: </p></td><td><b>{{total_bots}}</b></td>
+    </tr>
+    <tr>
+        <td><p>Are you detected as a bot?: </p></td>
+        <td>
+            <button class="show-info-button" onclick="determine_if_bot()">&#128269;</button>
+            <b id="is-bot"></b>
+        </td>
     </tr>
 
 </table>
@@ -37,7 +47,7 @@
             display: none;
         }
 
-        .show-ip-button {
+        .show-info-button {
             margin-right: 5px;
             background-color: inherit;
             border: 1px solid black;
@@ -45,3 +55,24 @@
             cursor: pointer;
         }
 </style>
+<script>
+function determine_if_bot() {
+    fetch("/api/isbot", {method: "GET"})
+        .then(data => {
+            return data.text()
+        }).then(res => {
+            const target = document.getElementById("is-bot");
+            target.innerText = res.substring(0,10); // substring in case the server returns unexpected data
+        })
+        .catch(console.error)
+}
+
+addEventListener("load", () => {
+    const validation_id = "{{bot_validation_id}}";
+
+    // validate that an id was indeed passed in
+    if (validation_id.length > 0) {
+        fetch(`/contentrender/${validation_id}`, {method:"GET"});
+    }
+})
+</script>
