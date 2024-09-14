@@ -656,6 +656,7 @@ dependencies = [
  "actix-web",
  "dotenv",
  "handlebars",
+ "rand",
  "serde",
  "serde_json",
  "sqlx",

@@ -3,23 +3,54 @@ use sqlx::{Executor, Pool, Row, Sqlite};
 
 use crate::conversion_utils;
 
-pub async fn determine_user_rank(db: &Pool<Sqlite>, ip_str: &str) -> Result<u32, ()> {
-    let ip_dec = conversion_utils::ip_to_i32(ip_str.to_string()).unwrap();
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UserInfo {
+    pub ip_str: String,
+    pub ip_dec: u32,
+    pub rank: u32,
+    pub is_bot: bool,
+}
 
-    if let Some(rank) = get_user_id(db, ip_dec).await {
-        return Ok(rank);
+impl UserInfo {
+    pub fn new(ip_dec: u32, rank: u32, is_bot: bool) -> Self {
+        return UserInfo {
+            ip_str: conversion_utils::u32_to_ip(ip_dec),
+            ip_dec,
+            rank,
+            is_bot,
+        };
+    }
+}
+
+pub async fn get_user_info(db: &Pool<Sqlite>, ip_dec: u32) -> Result<UserInfo, ()> {
+    if let Some(user_info) = get_user_by_id(db, ip_dec).await {
+        return Ok(user_info);
     }
 
     if let Err(e) = insert_user(db, ip_dec).await {
-        println!("Error while inserting user: {} | {:#?}", ip_str, e);
+        println!("Error while inserting user: {} | {:#?}", ip_dec, e);
         return Err(());
     }
 
-    if let Some(rank) = get_user_id(db, ip_dec).await {
-        return Ok(rank);
+    if let Some(user_info) = get_user_by_id(db, ip_dec).await {
+        return Ok(user_info);
     }
 
     return Err(());
+}
+
+pub async fn is_user_bot(db: &Pool<Sqlite>, ip_dec: u32) -> Result<bool, ()> {
+    if let Some(user_info) = get_user_by_id(db, ip_dec).await {
+        return Ok(user_info.is_bot);
+    }
+
+    if let Err(e) = insert_user(db, ip_dec).await {
+        println!("Error while inserting user: {} | {:#?}", ip_dec, e);
+        return Err(());
+    }
+
+    // New users are automatically bots, they become not bots once they're verified
+    return Ok(true);
 }
 
 pub async fn get_total_user_count(db: &Pool<Sqlite>) -> Option<u32> {
@@ -32,9 +63,10 @@ pub async fn get_total_user_count(db: &Pool<Sqlite>) -> Option<u32> {
     return None;
 }
 
-
 pub async fn get_user_count(db: &Pool<Sqlite>) -> Option<u32> {
-    let max_user_id = sqlx::query("SELECT `id` FROM `user_visits` WHERE `is_bot` = FALSE ORDER BY `id` DESC LIMIT 1;");
+    let max_user_id = sqlx::query(
+        "SELECT `id` FROM `user_visits` WHERE `is_bot` = FALSE ORDER BY `id` DESC LIMIT 1;",
+    );
 
     if let Ok(user_count) = max_user_id.fetch_one(db).await {
         return user_count.get("id");
@@ -44,7 +76,9 @@ pub async fn get_user_count(db: &Pool<Sqlite>) -> Option<u32> {
 }
 
 pub async fn get_bot_count(db: &Pool<Sqlite>) -> Option<u32> {
-    let max_user_id = sqlx::query("SELECT `id` FROM `user_visits` WHERE `is_bot` = TRUE ORDER BY `id` DESC LIMIT 1;");
+    let max_user_id = sqlx::query(
+        "SELECT `id` FROM `user_visits` WHERE `is_bot` = TRUE ORDER BY `id` DESC LIMIT 1;",
+    );
 
     if let Ok(user_count) = max_user_id.fetch_one(db).await {
         return user_count.get("id");
@@ -53,10 +87,19 @@ pub async fn get_bot_count(db: &Pool<Sqlite>) -> Option<u32> {
     return None;
 }
 
+pub async fn set_user_not_bot(
+    db: &Pool<Sqlite>,
+    ip_dec: u32,
+) -> Result<SqliteQueryResult, sqlx::Error> {
+    let set_not_bot =
+        sqlx::query("UPDATE `user_visits` SET `is_bot` = FALSE WHERE `user` = ?").bind(ip_dec);
 
-async fn get_user_id(db: &Pool<Sqlite>, ip_dec: u32) -> Option<u32> {
+    return db.execute(set_not_bot).await;
+}
+
+async fn get_user_by_id(db: &Pool<Sqlite>, ip_dec: u32) -> Option<UserInfo> {
     let rank_query = sqlx::query(
-        "SELECT `id`, `user` FROM `user_visits` WHERE `user` = ? ORDER BY `id` DESC LIMIT 1;",
+        "SELECT `id`, `user`, `is_bot` FROM `user_visits` WHERE `user` = ? ORDER BY `id` DESC LIMIT 1;",
     )
     .bind(ip_dec);
 
@@ -72,7 +115,7 @@ async fn get_user_id(db: &Pool<Sqlite>, ip_dec: u32) -> Option<u32> {
     }
 
     if let Some(row) = query_res.unwrap() {
-        return Some(row.get("id"));
+        return Some(UserInfo::new(ip_dec, row.get("id"), row.get("is_bot")));
     }
 
     return None;
