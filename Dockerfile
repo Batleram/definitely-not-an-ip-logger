@@ -15,7 +15,10 @@ FROM debian:bookworm
 
 WORKDIR /srv
 
-COPY --from=notiplog-builder /srv/target/release .
+COPY --from=notiplog-builder  /srv/target/release/notiplog-srv .
+COPY --from=notiplog-builder  /srv/target/release/static/ ./static
+COPY --from=notiplog-builder  /srv/target/release/templates/ ./templates
+COPY --from=notiplog-builder  /srv/target/release/migrations/ ./migrations
 
 EXPOSE $PORT
 
