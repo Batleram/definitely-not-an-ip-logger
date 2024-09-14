@@ -54,10 +54,10 @@ pub async fn is_user_bot(db: &Pool<Sqlite>, ip_dec: u32) -> Result<bool, ()> {
 }
 
 pub async fn get_total_user_count(db: &Pool<Sqlite>) -> Option<u32> {
-    let max_user_id = sqlx::query("SELECT `id` FROM `user_visits` ORDER BY `id` DESC LIMIT 1;");
+    let max_user_id = sqlx::query("SELECT count(*) as count FROM `user_visits`;");
 
     if let Ok(user_count) = max_user_id.fetch_one(db).await {
-        return user_count.get("id");
+        return user_count.get("count");
     }
 
     return None;
@@ -65,11 +65,11 @@ pub async fn get_total_user_count(db: &Pool<Sqlite>) -> Option<u32> {
 
 pub async fn get_user_count(db: &Pool<Sqlite>) -> Option<u32> {
     let max_user_id = sqlx::query(
-        "SELECT `id` FROM `user_visits` WHERE `is_bot` = FALSE ORDER BY `id` DESC LIMIT 1;",
+        "SELECT count(*) as count FROM `user_visits` WHERE `is_bot` = FALSE;",
     );
 
     if let Ok(user_count) = max_user_id.fetch_one(db).await {
-        return user_count.get("id");
+        return user_count.get("count");
     }
 
     return None;
@@ -77,11 +77,11 @@ pub async fn get_user_count(db: &Pool<Sqlite>) -> Option<u32> {
 
 pub async fn get_bot_count(db: &Pool<Sqlite>) -> Option<u32> {
     let max_user_id = sqlx::query(
-        "SELECT `id` FROM `user_visits` WHERE `is_bot` = TRUE ORDER BY `id` DESC LIMIT 1;",
+        "SELECT count(*) as count FROM `user_visits` WHERE `is_bot` = TRUE;",
     );
 
     if let Ok(user_count) = max_user_id.fetch_one(db).await {
-        return user_count.get("id");
+        return user_count.get("count");
     }
 
     return None;
