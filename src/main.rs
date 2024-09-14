@@ -11,7 +11,7 @@ use rand::{distributions::Alphanumeric, Rng};
 use sqlx::{Pool, Sqlite};
 use std::{collections::HashMap, net::SocketAddr, sync::Mutex};
 use template_models::*;
-use time::OffsetDateTime;
+use time::{format_description::parse_borrowed, OffsetDateTime};
 
 static VALIDATION_TIMEOUT: time::Duration = time::Duration::seconds(10);
 
@@ -70,15 +70,16 @@ async fn index(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Respond
         }
     };
 
-    if user_info.is_bot {
-        let Ok(mut validation_map_lock) = state.pending_validations.lock() else {
-            return HttpResponse::InternalServerError().finish();
-        };
+    // Generate a pending validation
+    let Ok(mut validation_map_lock) = state.pending_validations.lock() else {
+        return HttpResponse::InternalServerError().finish();
+    };
 
-        let validation = PendingValidation::new(user_info.ip_dec);
+    let validation = PendingValidation::new(user_info.ip_dec);
+    // create a local copy of the id becasue we move the validation to the hashmap
+    let unique_id = validation.unique_id.clone();
 
-        validation_map_lock.insert(validation.unique_id.clone(), validation);
-    }
+    validation_map_lock.insert(unique_id.clone(), validation);
 
     let data_table_content = DataTableModel {
         ip: ip_str.to_string(),
@@ -91,6 +92,8 @@ async fn index(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Respond
         total_visitors: persistence::get_total_user_count(&state.db)
             .await
             .unwrap_or(0),
+        total_bots: persistence::get_bot_count(&state.db).await.unwrap_or(0),
+        bot_validation_id: unique_id.clone(),
     };
 
     let Ok(bar_lock) = state.bars.lock() else {
@@ -149,6 +152,24 @@ async fn bot_reply(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Res
     }
 }
 
+#[get("/api/isbot")]
+async fn is_bot(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Responder {
+    let ip_str = match req.connection_info().realip_remote_addr() {
+        Some(ip) => ip.to_string(),
+        None => return HttpResponse::InternalServerError().body("You broke it"),
+    };
+
+    let ip_dec = match conversion_utils::ip_to_u32(ip_str.to_string()) {
+        Some(ip) => ip,
+        None => return HttpResponse::InternalServerError().body("You broke it"),
+    };
+
+    match persistence::get_user_info(&state.db, ip_dec).await {
+        Ok(info) => return HttpResponse::Ok().body(if info.is_bot { "YES" } else { "NO" }),
+        Err(_) => return HttpResponse::InternalServerError().body("You broke it"),
+    }
+}
+
 async fn fallback() -> impl Responder {
     return web::Redirect::to("/").see_other();
 }
@@ -188,6 +209,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(state.clone())
             .service(actix_filesystem::Files::new("/static", "static/"))
             .service(bot_reply)
+            .service(is_bot)
             .service(index)
             .default_service(web::route().to(fallback))
     })
