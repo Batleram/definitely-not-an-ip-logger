@@ -76,15 +76,20 @@ function handle_chatbot_submit(e) {
 
     const history = document.getElementById("chatbot-history");
     history.append(create_message(input_field.value, true));
+    let response_message = create_message("...", false)
+
+    // delay feedback a bit so it's not instant
+    setTimeout(()=>{
+        // add temp response for user feedback
+        history.append(response_message);
+    }, 250)
 
     // respond in 3s
     setTimeout(()=>{
-        history.append(
-            create_message(
-                rejection_messages[rejection_index++ % rejection_messages.length],
-                false
-            )
-        );
+        // fill in the response 
+        response_message.children[0].innerText = rejection_messages[rejection_index++ % rejection_messages.length]
+
+        // clear input
         input_field.value = "";
         input_field.disabled = false;
 
