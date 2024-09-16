@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct IndexModel{
     pub data_table: String,
+    pub chat_bot: String,
 }
 
 #[derive(Serialize, Deserialize)]

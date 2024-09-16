@@ -1,0 +1,92 @@
+<table class="chatbot-component">
+    <td style="vertical-align: top;">
+        <div style="overflow-y: scroll; height: calc(100vh - 3.5rem);" id="chatbot-scroll-container">
+            <table id="chatbot-history" cellspacing="0" cellpadding="0"></table>
+        </div>
+    </td>
+
+    <tfoot>
+        <td>
+            <form onsubmit="handle_chatbot_submit(event)">
+                <input id="chatbot-question" placeholder="Ask your question to our AI chatbot" />
+            </form>
+        </td>
+    </tfoot>
+</table>
+
+<style>
+#chatbot-history {
+    border: none;
+    width: 100%;
+}
+
+#chatbot-history * {
+    border-collapse: collapse;
+    border-style: hidden;
+}
+
+#chatbot-history td {
+    width: 50%;
+}
+
+.chatbot-component {
+    width: 100%;
+    height: 100%;
+}
+
+
+.chatbot-component tfoot {
+    height: 2rem;
+}
+
+#chatbot-question {
+    width: 100%;
+    height: 2rem;
+}
+
+</style>
+
+<script>
+
+const generic_rejection_message = "I'm sorry, but I can't assist with that request. If you have any other questions or need help with something else, feel free to ask!";
+
+// I’m unable to help with that request. If there's anything else you need or if you have other questions, just let me know!
+// I can’t fulfill that request. If you have any other questions or need assistance with something else, I’m here to help!
+// I’m unable to assist with that request as it falls outside of the guidelines I follow. If you have any other questions or need help with a different topic, please let me know and I'll do my best to provide the information you’re looking for.
+
+function create_message(content, is_user) {
+    const tr = document.createElement("tr");
+    tr.appendChild(document.createElement("td"));
+    tr.appendChild(document.createElement("td"));
+
+    // don't let is_user become undefined
+    tr.children[+is_user].innerText=content;
+
+    return tr;
+}
+
+function handle_chatbot_submit(e) {
+    e.preventDefault();
+
+    const input_field = document.getElementById("chatbot-question");
+    input_field.disabled = true
+
+    const history = document.getElementById("chatbot-history");
+    history.append(create_message(input_field.value, true));
+
+    // respond in 3s
+    setTimeout(()=>{
+        history.append(create_message(generic_rejection_message, false));
+        input_field.value = "";
+        input_field.disabled = false;
+
+        // scroll down
+        const scroll_container = document.getElementById("chatbot-scroll-container");
+        scroll_container.scrollTop = scroll_container.scrollHeight;
+
+        // focus back on input
+        input_field.focus();
+    }, 3000)
+}
+
+</script>

@@ -11,7 +11,7 @@ use rand::{distributions::Alphanumeric, Rng};
 use sqlx::{Pool, Sqlite};
 use std::{collections::HashMap, net::SocketAddr, sync::Mutex};
 use template_models::*;
-use time::{format_description::parse_borrowed, OffsetDateTime};
+use time::OffsetDateTime;
 
 static VALIDATION_TIMEOUT: time::Duration = time::Duration::seconds(10);
 
@@ -104,8 +104,13 @@ async fn index(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Respond
         return HttpResponse::InternalServerError().finish();
     };
 
+    let Ok(chat_bot_component) = bar_lock.render("chat_bot", &data_table_content) else {
+        return HttpResponse::InternalServerError().finish();
+    };
+
     let index_content = IndexModel {
         data_table: data_table_component,
+        chat_bot: chat_bot_component
     };
 
     return HttpResponse::Ok().body(bar_lock.render("index", &index_content).unwrap());
