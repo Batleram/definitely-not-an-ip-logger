@@ -8,9 +8,8 @@
     </head>
     <body>
         <table class="page-bg" cellspacing="0" >
-            <tr style="height:100vh;">
-
-                <td style="width:20vw; background-color: olive;" valign="top">
+            <tr>
+                <td class="page-component" style="width:20vw; background-color: olive;" valign="top">
                     <h3 style="text-align: center; margin: 10px;">Here are some awesome websites</h3>
                     <hr />
                     <ul style="text-align: left; padding-left: 17px;" >
@@ -38,7 +37,7 @@
                     </ul>
                 </td>
 
-                <td valign="top">
+                <td class="page-component" valign="top">
                     <h1 class="page-welcome">Welcome to this page which definitely doesn't log your ip :)</h1>
                     <table class="icon-table" cellspacing="7">
                         <tr>
@@ -54,7 +53,7 @@
                         <p>And in the meantime, drive safely, have fun and take down prod</p>
                     </section>
                 </td>
-                <td style="width:20vw;">
+                <td class="page-component" style="width:20vw;">
                     {{{chat_bot}}}
                 </td>
             </tr>
@@ -65,6 +64,14 @@
 
         html {
             font-size: 12px;
+            /* For some reason, setting a min-width for the table cells makes the page very tall and idk why */
+            overflow-y: hidden;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-color: #c4c4c4;
         }
 
         * {
@@ -83,6 +90,10 @@
               border-width: 1px;
         }
 
+        .page-component {
+              min-width: 300px;
+        }
+
         td {
               border-style: inset;
               border-width: 1px;
@@ -96,9 +107,6 @@
         }
         
         .page-bg{
-            width: 100vw;
-            height: 100vh;
-            background-color: #c4c4c4;
             display: grid;
         }
 
