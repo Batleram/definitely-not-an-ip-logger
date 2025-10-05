@@ -1,4 +1,4 @@
-FROM rust:1.75-buster as notiplog-builder
+FROM rust:1.90-bullseye as notiplog-builder
 
 WORKDIR /srv
 
