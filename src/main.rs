@@ -3,23 +3,24 @@ mod persistence;
 mod template_models;
 
 use actix_files as actix_filesystem;
-use actix_web::{get, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{get, middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use conversion_utils::TIME_FORMAT;
 use dotenv::dotenv;
 use handlebars::{DirectorySourceOptions, Handlebars};
 use rand::{distributions::Alphanumeric, Rng};
 use sqlx::{Pool, Sqlite};
-use std::{collections::HashMap, net::SocketAddr, sync::Mutex};
+use std::{collections::HashMap, net::SocketAddr, sync::{Arc, Mutex}};
 use template_models::*;
 use time::OffsetDateTime;
+
 
 static VALIDATION_TIMEOUT: time::Duration = time::Duration::seconds(10);
 
 #[derive(Debug)]
 struct AppState<'a> {
-    bars: Mutex<Handlebars<'a>>,
+    bars: Arc<Mutex<Handlebars<'a>>>,
     db: Pool<Sqlite>,
-    pending_validations: Mutex<HashMap<String, PendingValidation>>,
+    pending_validations: Arc<Mutex<HashMap<String, PendingValidation>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -71,7 +72,8 @@ async fn index(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Respond
     };
 
     // Generate a pending validation
-    let Ok(mut validation_map_lock) = state.pending_validations.lock() else {
+    let arc_ptr = state.pending_validations.clone();
+    let Ok(mut validation_map_lock) = arc_ptr.try_lock() else {
         return HttpResponse::InternalServerError().finish();
     };
 
@@ -96,7 +98,8 @@ async fn index(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Respond
         bot_validation_id: unique_id.clone(),
     };
 
-    let Ok(bar_lock) = state.bars.lock() else {
+    let bars_arc_ptr = state.bars.clone();
+    let Ok(bar_lock) = bars_arc_ptr.try_lock() else {
         return HttpResponse::InternalServerError().finish();
     };
 
@@ -125,7 +128,8 @@ async fn bot_reply(state: web::Data<AppState<'_>>, req: HttpRequest) -> impl Res
         }
     };
 
-    let Ok(mut validation_map_lock) = state.pending_validations.lock() else {
+    let arc_ptr = state.pending_validations.clone();
+    let Ok(mut validation_map_lock) = arc_ptr.try_lock() else {
         return HttpResponse::InternalServerError().finish();
     };
 
@@ -199,9 +203,9 @@ async fn main() -> std::io::Result<()> {
         .unwrap();
 
     let state = web::Data::new(AppState {
-        bars: Mutex::new(bars),
+        bars: Arc::new(Mutex::new(bars)),
         db: db_pool,
-        pending_validations: Mutex::new(HashMap::new()),
+        pending_validations: Arc::new(Mutex::new(HashMap::new())),
     });
 
     let port: u16 = std::env::var("PORT")
@@ -209,9 +213,13 @@ async fn main() -> std::io::Result<()> {
         .parse()
         .unwrap();
 
+    // idk, does stuff ig
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
     let res = HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
+            .wrap(Logger::default())
             .service(actix_filesystem::Files::new("/static", "static/"))
             .service(bot_reply)
             .service(is_bot)
